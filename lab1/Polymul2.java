@@ -11,10 +11,36 @@ package popup.lab1;
  */
 public class Polymul2 {
 
+    static private int[] answer;
     
-    
-    Polymul2(){
+    Polymul2(int degreeFirst, int[] coefficientsFirst, int degreeSecond, int[] coefficientsSecond){
         
+        
+        int maxDeg = Math.max(degreeFirst,degreeSecond);
+        if(maxDeg<3){
+            int bd = coefficientsFirst[0] * coefficientsSecond[0];
+            int abcd = (coefficientsFirst[0]+ coefficientsFirst[1])*(coefficientsSecond[0] + coefficientsSecond[1]);
+            int ac = coefficientsFirst[1] * coefficientsSecond[1];
+            System.err.println(bd + " + " + (abcd-bd-ac) +" + " + ac);
+        }
+        
+        
+    }
+    
+    
+    
+    private int karatsuba(int ffrom, int fto, int[] first, int sfrom, int sto, int[] second){
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        return 0;
     }
     
     
@@ -27,17 +53,19 @@ public class Polymul2 {
             int T = io.getInt();
             for(int i = 0; i < T; i++){
                 int degreeFirst = io.getInt();
-                int[] coefficinetsFirst = new int[degreeFirst+1];
-                for(int j = 0; j < degreeFirst+1; i++){
-                    coefficinetsFirst[j] = io.getInt();
+                int[] coefficientsFirst = new int[degreeFirst+1];
+                for(int j = 0; j < degreeFirst+1; j++){
+                    coefficientsFirst[j] = io.getInt();
                 }
                 int degreeSecond = io.getInt();
-                int[] coefficinetsSecond = new int[degreeSecond+1];
-                for(int j = 0; j < degreeSecond+1; i++){
-                    coefficinetsSecond[j] = io.getInt();
+                int[] coefficientsSecond = new int[degreeSecond+1];
+                for(int j = 0; j < degreeSecond+1; j++){
+                    coefficientsSecond[j] = io.getInt();
                 }
-                Polymul2();
+                answer = new int[degreeFirst+degreeSecond+2];
+                new Polymul2(degreeFirst, coefficientsFirst, degreeSecond, coefficientsSecond);
             }
+            break;
         }
         io.flush();
         io.close();
