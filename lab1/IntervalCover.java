@@ -39,6 +39,7 @@ public class IntervalCover {
 			Kattio kio = new Kattio(System.in);
 			while(kio.hasMoreTokens())
 			{
+				//Handle Input
 				double left = kio.getDouble();
 				double right = kio.getDouble();
 				int num = kio.getInt();
@@ -46,9 +47,12 @@ public class IntervalCover {
 				for(int i = 0; i < num; i++){
 					intervals[i] = new Tupel(kio.getDouble(), kio.getDouble(), i);
 				}
+				
+				//Solve problem
 				Arrays.sort(intervals);
-
 				ArrayList<Integer> ans = interval(left, right, intervals);
+				
+				//Handle Output
 				if(ans == null){
 					System.out.println(FAIL);
 					continue;
@@ -64,6 +68,13 @@ public class IntervalCover {
 		}
 	}
 
+	/**
+	 * Solves the interval problem
+	 * @param left the left interval (minimum)
+	 * @param right the right interval (maximum)
+	 * @param intervals the intervals to cover, sorted by Array.sort or something like that
+	 * @return an array with index of intervals in the solution
+	 */
 	public ArrayList<Integer> interval(double left, double right, Tupel[] intervals){
 		if(intervals[0].right < right) {
 			//System.out.println("Highest Interval does not cover!");
@@ -85,6 +96,7 @@ public class IntervalCover {
 				}
 			}
 			if(prev == curr){
+				//If nothing is covering left, then this will happen
 				//System.out.println("Nothing Happened, Fail!");
 				return null; //nothing happened, fail!
 			}
