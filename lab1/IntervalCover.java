@@ -7,10 +7,10 @@ import java.util.Arrays;
  * @author ThompZon
  */
 public class IntervalCover {
-	private static boolean DEBUGGING = false;
+	public static boolean DEBUGGING = false;
 	private static final String FAIL = "impossible";
 
-	private class Tupel implements Comparable<Tupel>{
+	public class Tupel implements Comparable<Tupel>{
 		public double left;
 		public double right;
 		public int originalIndex;
@@ -76,11 +76,11 @@ public class IntervalCover {
 	 * @return an array with index of intervals in the solution
 	 */
 	public ArrayList<Integer> interval(double left, double right, Tupel[] intervals){
+		//Highest right does not cover right protection
 		if(intervals[0].right < right) {
 			//System.out.println("Highest Interval does not cover!");
 			return null; 
 		}
-		//Highest right does not cover right
 		
 		double prev;
 		double curr = left;
