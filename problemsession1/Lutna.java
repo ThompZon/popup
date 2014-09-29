@@ -54,6 +54,9 @@ public class Lutna {
 		
 	}
 	
+	/**
+	 * Löses genom att se allt som staplar, sortera och sätt höjden till den nästhögsta, repeat 
+	 */
 	public long getAnger(ArrayList<Barn> a, long sum, int children, int candies){
 		long totalAnger = 0;
 		double kvot = candies / (double)sum;
