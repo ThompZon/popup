@@ -5,7 +5,18 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
- * @author ThompZon
+ * This class does Dijkstra's Algorithm.
+ * It calculates the shortest path from a start node to every other node
+ * 
+ * When constructed, it will do the bulk work.
+ * After the construction, querying the distance from start to some destination
+ * is a fast operation (constant time actually). 
+ * 
+ * Getting the path from start to destination takes O(n) time with n nodes between
+ * start and destination. 
+ * 
+ * Kattis url: https://kth.kattis.com/problems/shortestpath1
+== Sample Input ==
 4 3 4 0
 0 1 2
 1 2 2
@@ -18,6 +29,14 @@ import java.util.PriorityQueue;
 0 1 100
 1
 0 0 0 0
+== Expected Output == 
+0
+2
+4
+Impossible
+
+100
+=====================
  */
 public class Dijkstras {
 	private static final String FAIL = "Impossible";
@@ -93,7 +112,7 @@ public class Dijkstras {
 	}
 	
 	private int[] distances;
-	
+	private Node[] graph;
 	
 	/**
 	 * Create this object to run Dijkstra's Algorithm
@@ -103,6 +122,7 @@ public class Dijkstras {
 	 * @param start Start node to do Dijkstra's from
 	 */
 	public Dijkstras(Node[] graph, int start){
+		this.graph = graph;
 		//Setup distances
 		distances = new int[graph.length];
 		for(int i = 0; i < distances.length; i++){
@@ -113,6 +133,7 @@ public class Dijkstras {
 		PriorityQueue<Edge> q = new PriorityQueue<Edge>();
 		q.addAll(graph[start].neighbourList);
 		graph[start].visited = true;
+		graph[start].parent = start;
 		distances[start] = 0;
 
 		Edge e;
@@ -138,7 +159,7 @@ public class Dijkstras {
 	 * Distances from start node when initialized this object
 	 * @return distances from start node. Start node will be 0, others depends on the weight between the nodes
 	 */
-	public int[] getDistancesFrom(){
+	public int[] getDistances(){
 		return distances;
 	}
 	
@@ -166,6 +187,27 @@ public class Dijkstras {
 	}
 	
 	/**
+	 * Gets the index for the nodes visited when traveling from start to destination in reversed order
+	 * Takes O(n) time when n is the number of nodes visited when traveling from start to destination
+	 * @param destination index of the destination node. Will crash if it is not a valid node index, return null if not visited
+	 * @return A list with the indexes of nodes starting with destination, ..., start going towards start. Return null if not visited. Return only start node if destination == start
+	 */
+	public ArrayList<Integer> getPath(int destination){
+		Node curr = graph[destination]; //will crash if out of bounds!
+		if(curr.visited == false || curr.parent == -1){
+			return null; //Never visited!
+		}
+		//Acutally build the path
+		ArrayList<Integer> nodesInPath = new ArrayList<Integer>();
+		while(curr.parent != curr.selfIndex){
+			nodesInPath.add(curr.selfIndex);
+			curr = graph[curr.parent];
+		}
+		nodesInPath.add(curr.selfIndex); //add start node too!
+		return nodesInPath;
+	}
+	
+	/**
 	 * @param args
 	 */
 	public static void main(String[] args) {
@@ -186,7 +228,7 @@ public class Dijkstras {
 				int to = kio.getInt();
 				int weight = kio.getInt();
 				ns[from].neighbourList.add(new Edge(from, to, weight));
-				//ns[to].neighbourList.add(new Edge(to, from, weight));
+				//ns[to].neighbourList.add(new Edge(to, from, weight)); //With this, it is undirected with same values for both directions
 			}
 			//READ AND SOLVE!
 			
@@ -196,7 +238,6 @@ public class Dijkstras {
 				kio.println(dij.kattisQueryDistance(kio.getInt()));
 			}
 			
-			kio.flush();
 			//Read next case or end of test cases
 			nodes = kio.getInt();
 			edges = kio.getInt();
@@ -204,7 +245,7 @@ public class Dijkstras {
 			start = kio.getInt();
 			if(nodes == 0 && edges == 0 && queries == 0 && start == 0){
 				//end of test cases
-				//kio.flush();
+				kio.flush();
 				kio.close();
 				return;
 			}
