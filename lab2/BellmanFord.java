@@ -1,11 +1,10 @@
 package popup.lab2;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 
-import org.omg.PortableInterceptor.INACTIVE;
-
 /**
- * Authors Thomas SjÃ¶holm and Alexander Gomez
+ * Authors Thomas Sjöholm and Alexander Gomez
  */
 public class BellmanFord {
     private static final String FAILNOPATH = "Impossible";
@@ -16,7 +15,6 @@ public class BellmanFord {
      * Edges are sorted by weight. An edge is directed!
      */
     public static class Edge implements Comparator<Edge>, Comparable<Edge> {
-
         public int weight;
         public int from;
         public int to;
@@ -196,8 +194,14 @@ public class BellmanFord {
     
     /**
 	 * Distances from start node when initialized this object. 
-	 * Distances to nodes that are part of or go through a negative cycle has the value of Integer.MIN_VALUE
-	 * @return distances from start node. Start node will be 0, others depends on the weight between the nodes, if it is reachable or if part of cycle
+	 * The nodes will have the following values:
+	 * 0 if node index == start (OR just happens to pass through nodes so this happens!)
+	 * Integer.MAX_VALUE if it is disconnected from start (or just happen to be that value)
+	 * Integer.MIN_VALUE if destination is part of a negative cycle (or passes through a negative cycle, OR just happen to be that value)
+	 * 
+	 * For most input data, Integer.MIN_VALUE and Integer.MAX_VALUE is indicating negative cycle/unreachable
+	 * But for seeing negative cycle, use the method to get that!
+	 * @return distances from start node
 	 */
 	public int[] getDistances(){
 		return distances;
@@ -207,12 +211,54 @@ public class BellmanFord {
 	 * Gets distance from start to destination
 	 * 0 if destination == start
 	 * Integer.MAX_VALUE if it is disconnected from start (or just happen to be that value)
-	 * If destination is part of a negative cycle
+	 * Integer.MIN_VALUE if destination is part of a negative cycle (or passes through a negative cycle, OR just happen to be that value)
+	 * 
+	 * For most input data, Integer.MIN_VALUE and Integer.MAX_VALUE is indicating negative cycle/unreachable
+	 * But for seeing negative cycle, use the method to get that!
 	 * @param destination the node index to get distance for
 	 * @return the distance from start to destination. 
 	 */
 	public int queryDistance(int destination){
 		return distances[destination];
+	}
+	
+	/**
+	 * Check if the destination is part of a negative cycle or not. 
+	 * @param destination The node index to see if it is part of negative cycle or not
+	 * @return true if part of negative cycle, false otherwise
+	 */
+	public boolean isNegativeCycle(int destination){
+		return hasNegativeCycle[destination];
+	}
+	
+	/**
+	 * Gets indications if nodes are part of negative cycle or not.
+	 * Array with value true if the node with index [i] is part of negative cycle, false otherwise
+	 * @return array indicating if some node is part of negatie cycle
+	 */
+	public boolean[] getNegativeCycleArray(){
+		return hasNegativeCycle;
+	}
+	
+	/**
+	 * Gets the index for the nodes visited when traveling from start to destination in reversed order. 
+	 * Takes O(n) time when n is the number of nodes visited when traveling from start to destination
+	 * @param destination index of the destination node. Will crash if it is not a valid node index, return null if not visited or part of negative cycle
+	 * @return A list with the indexes of nodes starting with destination, ..., start going towards start. Return null if not visited or part of negative cycle. Return only start node if destination == start
+	 */
+	public ArrayList<Integer> getPath(int destination){
+		if(parent[destination] == NOPARENT || hasNegativeCycle[destination] == true){ //will crash if out of bounds!
+			return null; //Never visited or is part of negative cycle, path is undefined!
+		}
+		int curr = destination; 
+		//Actually build the path
+		ArrayList<Integer> nodesInPath = new ArrayList<Integer>();
+		while(parent[curr] != curr){ //has itself as parent
+			nodesInPath.add(curr);
+			curr = parent[curr];
+		}
+		nodesInPath.add(curr); //add start node too!
+		return nodesInPath;
 	}
 
     /**
@@ -258,5 +304,4 @@ public class BellmanFord {
             kio.println();
         }
     }
-
 }
