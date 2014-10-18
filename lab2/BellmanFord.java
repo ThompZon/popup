@@ -1,14 +1,13 @@
 package popup.lab2;
 
-import java.util.ArrayList;
 import java.util.Comparator;
+
+import org.omg.PortableInterceptor.INACTIVE;
 
 /**
  * Authors Thomas Sjöholm and Alexander Gomez
- * 
  */
 public class BellmanFord {
-
     private static final String FAILNOPATH = "Impossible";
     private static final String FAILNEGCYCLE = "-Infinity";
     private static final int NOPARENT = -1;
@@ -61,18 +60,29 @@ public class BellmanFord {
         }
     }
 
-    private int[] distances;
-    private int[] parent;
-    private boolean[] hasNegativeCycle;
-    private boolean[] checked;
+    private int[] distances;	//The distances from start to [i]
+    private int[] parent;		//When traveling from start to [i], where did I come from?
+    private boolean[] hasNegativeCycle;		//[i] is part of a negative cycle if true, false otherwise
 
+    /**
+     * When creating this object, it will run BellmanFord's algorithm on input data.
+     * 
+     * It will find the shortest path from start to all other nodes. The nodes are indexed 0 .. (n-1) where n is the number of nodes.
+     * The graph is directed, for an undirected graph, use two edges to indicate that.
+     * 
+     * Edges can have negative values. If a negative cycle is detected, they will be marked and the distance for that node is not trustworthy
+     * @param edges The edges in the graph
+     * @param nodes The number of nodes in the graph
+     * @param start The starting node that you want to know the minimum distance from.
+     */
     public BellmanFord(Edge[] edges, int nodes, int start) {
         distances = new int[nodes];
         parent = new int[nodes];
         hasNegativeCycle = new boolean[nodes];
-        checked = new boolean[nodes];
-        boolean negativeCycle = false;
+        boolean[] checked = new boolean[nodes];	//used when checking for negative cycles
+        boolean negativeCycle = false;			//has ANY negative cycle
 
+        //Step 1: Initialize
         for (int i = 0; i < nodes; i++) {
             distances[i] = Integer.MAX_VALUE;
             parent[i] = NOPARENT;
@@ -80,7 +90,8 @@ public class BellmanFord {
         }
         distances[start] = 0;
         parent[start] = start; //start is itselves parent
-
+        
+        //Step 2: Find shortest distance from start to any other node
         for (int step = 0; step < nodes; step++) {
             for (int i = 0; i < edges.length; i++) {
                 int from = edges[i].from;
@@ -97,16 +108,16 @@ public class BellmanFord {
                 }
             }
         }
-
+        
+        //Step 3-1: Detect Negative Cycles:
         for (int i = 0; i < edges.length; i++) {
-            
             int from = edges[i].from;
             int to = edges[i].to;
-
+            
             if(hasNegativeCycle[from] && hasNegativeCycle[to]){
                 continue;
             }
-            if(parent[from] == -1){
+            if(parent[from] == NOPARENT){
                 checked[from] = true;
                 continue;
             }
@@ -114,42 +125,40 @@ public class BellmanFord {
                 negativeCycle = true;
                 int tmp = from;
                 while(tmp != to && tmp >= 0 && !checked[tmp]){
-                    hasNegativeCycle[tmp] = true;
-                    checked[tmp] = true;
+                	//Mark the whole negative cycle as negative cycle! 
+                	//Note that this will not detect elements that branch from the negative cycle as negative cycle!
+                    markNegativeCycle(checked, tmp);
                     tmp = parent[tmp];
                 }
-                //hasNegativeCycle[from] = true;
-                //checked[from] = true;
-                hasNegativeCycle[to] = true;
-                checked[to] = true;
+                markNegativeCycle(checked, to);
             }
         }
-        if(!negativeCycle){
+        if(negativeCycle == false){
+        	//If no negative cycle detected, then we are done!
             return;
         }
-        checked[start] = true; //?
-        //ArrayList<Integer> path = new ArrayList();
-        for(int i = 0; i <nodes; i++){
-            if(!checked[i]){
-                
+        //Step 3-2: Mark ALL elements that are reached through a negative cycle as negative cycle!
+        checked[start] = true; //We have checked start, prevents infinite loop
+        for(int i = 0; i < nodes; i++){
+            if(checked[i] == false){
                 int tmp = parent[i];
                 checked[i] = true;
-                //checked[tmp] = true;
                 while(true){
-                    if(tmp<0){
+                	//Mark elements reached t
+                    if(tmp == NOPARENT){
                         break;
-                    }else if(checked[tmp] && !hasNegativeCycle[tmp]){
+                    }else if(checked[tmp] && hasNegativeCycle[tmp] == false){
+                    	//Reached start or a non-negative-cycle part of the graph, done checking this part
                         break;
                     }else if(hasNegativeCycle[tmp]){
-                        
+                    	//If parent of i has negative cycle
+                    	//then reach through everything reached by it and mark as negative cycle
                         tmp = i;
-                        while(!hasNegativeCycle[tmp]){
-                            hasNegativeCycle[tmp] = true;
-                            checked[tmp] = true; //?
+                        while(hasNegativeCycle[tmp] == false){
+                            markNegativeCycle(checked, tmp);
                             tmp = parent[tmp];
                         }
                         break;
-
                     }
                     checked[tmp] = true;
                     tmp = parent[tmp];
@@ -158,14 +167,53 @@ public class BellmanFord {
         }
     }
 
+	/**
+	 * Marks the node as part of negative cycle
+	 * @param checked
+	 * @param nodeIndex
+	 */
+	private void markNegativeCycle(boolean[] checked, int nodeIndex) {
+		hasNegativeCycle[nodeIndex] = true;
+		checked[nodeIndex] = true;
+		distances[nodeIndex] = Integer.MIN_VALUE;
+	}
+    
+    /**
+     * Queries the distance from start to Destination.
+	 * 0 if destination == start
+	 * "Impossible" if destination is unreachable
+	 * "-Infinity" if destination is part of a negative cycle (or reached through a negative cycle)
+	 * The value otherwise
+     * @param destination The node index to get the distance from start to destination
+     * @return the distance from start to destination
+     */
     public String kattisQueryDistance(int destination) {
-        
         if (hasNegativeCycle[destination]) {
             return FAILNEGCYCLE;
         }
-        
         return (distances[destination] == Integer.MAX_VALUE ? FAILNOPATH : distances[destination] + "");
     }
+    
+    /**
+	 * Distances from start node when initialized this object. 
+	 * Distances to nodes that are part of or go through a negative cycle has the value of Integer.MIN_VALUE
+	 * @return distances from start node. Start node will be 0, others depends on the weight between the nodes, if it is reachable or if part of cycle
+	 */
+	public int[] getDistances(){
+		return distances;
+	}
+	
+	/**
+	 * Gets distance from start to destination
+	 * 0 if destination == start
+	 * Integer.MAX_VALUE if it is disconnected from start (or just happen to be that value)
+	 * If destination is part of a negative cycle
+	 * @param destination the node index to get distance for
+	 * @return the distance from start to destination. 
+	 */
+	public int queryDistance(int destination){
+		return distances[destination];
+	}
 
     /**
      * @param args
@@ -178,6 +226,7 @@ public class BellmanFord {
         int start = kio.getInt();
         //Node[] ns = new Node[10000];
         while (true) {
+        	//Read input for this test case:
             Edge[] edgeList = new Edge[edges];
             for (int i = 0; i < edges; i++) {
                 int from = kio.getInt();
@@ -185,9 +234,11 @@ public class BellmanFord {
                 int weight = kio.getInt();
                 edgeList[i] = new Edge(from, to, weight);
             }
-
+            
+            //Run the algorithm:
             BellmanFord bellman = new BellmanFord(edgeList, nodes, start);
-
+            
+            //Run the queries:
             for (int q = 0; q < queries; q++) {
                 kio.println(bellman.kattisQueryDistance(kio.getInt()));
             }
@@ -203,6 +254,7 @@ public class BellmanFord {
                 kio.close();
                 return;
             }
+            //New line between test cases:
             kio.println();
         }
     }

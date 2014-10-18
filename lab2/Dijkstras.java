@@ -118,6 +118,8 @@ public class Dijkstras {
 	 * Create this object to run Dijkstra's Algorithm
 	 * The size of the graph (Node[] graph.length) is only used to create an equal sized distance array.
 	 * This will only run from start, create a new object for other start positions.
+	 * 
+	 * Note that the behavior is undefined if an edge has negative values and it is possible that it will crash or return something wrong.
 	 * @param graph Initialized nodes with neighbors in their neighbor lists. 
 	 * @param start Start node to do Dijkstra's from
 	 */
