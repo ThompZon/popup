@@ -16,21 +16,11 @@ import java.util.PriorityQueue;
  * between start and destination.
  *
  * Kattis url: https://kth.kattis.com/problems/shortestpath2
- * 
- * 
-4 4 4 0
-0 1 15 10 5
-1 2 15 10 5
-0 2 5 5 30
-3 0 0 1 1
-0
-1
-2
-3
-2 1 1 0
-0 1 100 0 5
-1
-0 0 0 0
+ *
+ *
+ * 4 4 4 0
+ * 0 1 15 10 5 1 2 15 10 5 0 2 5 5 30 3 0 0 1 1 0 1 2 3 2 1 1 0 0 1 100 0 5 1 0
+ * 0 0 0
  */
 public class DijkstrasTime {
 
@@ -84,6 +74,8 @@ public class DijkstrasTime {
         public Edge(int from, int to, int weight) {
             this.from = from;
             this.to = to;
+            this.tZero = 0;
+            this.p = 1;
             this.weight = weight;
         }
 
@@ -143,9 +135,8 @@ public class DijkstrasTime {
 
         //Setup Queue and start node
         PriorityQueue<Edge> q = new PriorityQueue<Edge>();
-        
-        
-        for(Edge nextEdge:graph[start].neighbourList){
+
+        for (Edge nextEdge : graph[start].neighbourList) {
             nextEdge.weight += nextEdge.tZero;
             q.add(nextEdge);
         }
@@ -160,24 +151,23 @@ public class DijkstrasTime {
             if (graph[e.to].visited == false) {
                 for (Edge nextEdge : graph[e.to].neighbourList) {
                     //Add the current distance traveled to the edges before adding them
-                    
-                    if(nextEdge.p==0){
-                        if(e.weight>nextEdge.tZero){
+
+                    if (nextEdge.p == 0) {
+                        if (e.weight > nextEdge.tZero) {
                             continue;
                         }
-                        nextEdge.weight += e.weight + nextEdge.tZero-e.weight;
-                        
-                    }else{               
-                        
-                        nextEdge.weight += e.weight + (nextEdge.tZero + nextEdge.p*((int)Math.ceil((double)Math.max(0.0,e.weight-nextEdge.tZero)/nextEdge.p))) - e.weight;
+                        nextEdge.weight += e.weight + nextEdge.tZero - e.weight;
+
+                    } else {
+
+                        nextEdge.weight += e.weight + (nextEdge.tZero + nextEdge.p * ((int) Math.ceil((double) Math.max(0.0, e.weight - nextEdge.tZero) / nextEdge.p))) - e.weight;
                     }
-                    
+
                     q.add(nextEdge);
                 }
                 //Add all edges to the queue
-                
-                //q.addAll(graph[e.to].neighbourList);
 
+                //q.addAll(graph[e.to].neighbourList);
                 //Update current node
                 graph[e.to].visited = true;
                 distances[e.to] = e.weight;
@@ -256,22 +246,54 @@ public class DijkstrasTime {
         int queries = kio.getInt();
         int start = kio.getInt();
         //Node[] ns = new Node[10000];
+        boolean timeTable = false;
         while (true) {
             Node[] ns = new Node[nodes];
             for (int i = 0; i < nodes; i++) {
                 ns[i] = new Node(i);
             }
 
-            for (int i = 0; i < edges; i++) {
-                int from = kio.getInt();
-                int to = kio.getInt();
-                int tZero = kio.getInt();
-                int p = kio.getInt();
-                int weight = kio.getInt();
-                ns[from].neighbourList.add(new Edge(from, to,tZero,p, weight));
+            
+            int from, to, tZero, p, weight;
+            
+            if (edges != 0) {
+                String[] input = kio.getLine().split(" ");
+                if (input.length > 3) {
+                    from = Integer.valueOf(input[0]);
+                    to = Integer.valueOf(input[1]);
+                    tZero = Integer.valueOf(input[2]);
+                    p = Integer.valueOf(input[3]);
+                    weight = Integer.valueOf(input[4]);
+                    ns[from].neighbourList.add(new Edge(from, to, tZero, p, weight));
+                    timeTable = true;
+                } else {
+                    from = Integer.valueOf(input[0]);
+                    to = Integer.valueOf(input[1]);
+                    weight = Integer.valueOf(input[2]);
+                    ns[from].neighbourList.add(new Edge(from, to, weight));
+
+                }
+
+            }
+
+            for (int i = 1; i < edges; i++) {
+                if (timeTable) {
+                    from = kio.getInt();
+                    to = kio.getInt();
+                    tZero = kio.getInt();
+                    p = kio.getInt();
+                    weight = kio.getInt();
+                    ns[from].neighbourList.add(new Edge(from, to, tZero, p, weight));
+                }else{
+                    from = kio.getInt();
+                    to = kio.getInt();
+                    weight = kio.getInt();
+                    ns[from].neighbourList.add(new Edge(from, to, weight));
+                }
+
                 //ns[to].neighbourList.add(new Edge(to, from, weight)); //With this, it is undirected with same values for both directions
             }
-			//READ AND SOLVE!
+            //READ AND SOLVE!
 
             DijkstrasTime dij = new DijkstrasTime(ns, start);
 
