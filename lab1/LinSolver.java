@@ -9,9 +9,9 @@ package popup.lab1;
  *
  * @author Alexander
  */
-public class PartSolver {
+public class LinSolver {
 
-    PartSolver(int n, double[][] A, double[] b, double[] nC, Kattio io) {
+    LinSolver(int n, double[][] A, double[] b, double[] nC, Kattio io) {
         int row;
         double epsilon = 0.00001;
 
@@ -189,7 +189,7 @@ public class PartSolver {
             for (int i = 0; i < n; i++) {
                 b[i] = io.getDouble();
             }
-            new PartSolver(n, A, b, nC, io);
+            new LinSolver(n, A, b, nC, io);
             //io.flush();
         }
         io.flush();
