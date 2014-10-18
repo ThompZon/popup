@@ -5,22 +5,20 @@ import java.util.Comparator;
 import java.util.PriorityQueue;
 
 /**
- * This class does Dijkstra's Algorithm. It calculates the shortest path from a
- * start node to every other node
+ * This class does Dijkstra's Algorithm with timetables. It calculates the 
+ * shortest path from a start node to every other node and takes into 
+ * consideration of the times the nodes can be traveled on.
  *
  * When constructed, it will do the bulk work. After the construction, querying
  * the distance from start to some destination is a fast operation (constant
  * time actually).
  *
- * Getting the path from start to destination takes O(n) time with n nodes
+ * Querying the path start to destination takes O(n) time with n nodes
  * between start and destination.
  *
  * Kattis url: https://kth.kattis.com/problems/shortestpath2
  *
  *
- * 4 4 4 0
- * 0 1 15 10 5 1 2 15 10 5 0 2 5 5 30 3 0 0 1 1 0 1 2 3 2 1 1 0 0 1 100 0 5 1 0
- * 0 0 0
  */
 public class DijkstrasTime {
 
@@ -28,8 +26,8 @@ public class DijkstrasTime {
 
     /**
      * The Node is a node in the graph of this problem The selfIndex and parent
-     * is used to be able to do the construction of some path If parent is -1,
-     * then it is disconnected from the start!
+     * is used to be able to do the construction of some path. If parent is -1,
+     * then it is disconnected from the start! 
      */
     public static class Node {
 
@@ -79,6 +77,19 @@ public class DijkstrasTime {
             this.weight = weight;
         }
 
+        /**
+         * Initialize an edge that connects two nodes.
+         * 
+         * The times at which this edge can be traveled at is calculated by
+         * tZero+t*p for all 0=< t < 2^31. In case of p being zero the edge can only
+         * be passed when time is tZero.
+         * 
+         * @param from  the starting node of this edge
+         * @param to    the destination node of this edge
+         * @param tZero the earliest time this edge can be used at
+         * @param p     the interval after tZero which this node can be used at
+         * @param weight the time of cost for this edge
+         */
         private Edge(int from, int to, int tZero, int p, int weight) {
             this.from = from;
             this.to = to;
@@ -136,11 +147,12 @@ public class DijkstrasTime {
         //Setup Queue and start node
         PriorityQueue<Edge> q = new PriorityQueue<Edge>();
 
+        //Calculate weights for the edges from start when t = 0;
         for (Edge nextEdge : graph[start].neighbourList) {
             nextEdge.weight += nextEdge.tZero;
             q.add(nextEdge);
         }
-        //q.addAll(graph[start].neighbourList);
+        
         graph[start].visited = true;
         graph[start].parent = start;
         distances[start] = 0;
@@ -150,24 +162,30 @@ public class DijkstrasTime {
             e = q.poll();
             if (graph[e.to].visited == false) {
                 for (Edge nextEdge : graph[e.to].neighbourList) {
-                    //Add the current distance traveled to the edges before adding them
+                    //Calculate times on the edges and add them
 
+                    
                     if (nextEdge.p == 0) {
                         if (e.weight > nextEdge.tZero) {
                             continue;
                         }
-                        nextEdge.weight += e.weight + nextEdge.tZero - e.weight;
+                        nextEdge.weight += nextEdge.tZero;
 
                     } else {
-
-                        nextEdge.weight += e.weight + (nextEdge.tZero + nextEdge.p * ((int) Math.ceil((double) Math.max(0.0, e.weight - nextEdge.tZero) / nextEdge.p))) - e.weight;
+                        /**
+                         * Calculates time to travel the next edge, using the 
+                         * time traveled to the node as current time, we 
+                         * calculate time to the next interval the edge can be
+                         * used and add it to the weight. 
+                         * Total time to travel edge = time to travel it + 
+                         * time until next interval that it can be traveled +
+                         * time taken to travel to this node
+                         */
+                        nextEdge.weight += (nextEdge.tZero + nextEdge.p * ((int) Math.ceil((double) Math.max(0.0, e.weight - nextEdge.tZero) / nextEdge.p)));
                     }
-
+                    //Add edge to priority queue
                     q.add(nextEdge);
                 }
-                //Add all edges to the queue
-
-                //q.addAll(graph[e.to].neighbourList);
                 //Update current node
                 graph[e.to].visited = true;
                 distances[e.to] = e.weight;
