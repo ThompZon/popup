@@ -40,10 +40,14 @@ public class FordFulkerson {
 	 */
 	public static void main(String[] args) {
 		Kattio kio = new Kattio(System.in);
-		int nodes = kio.getInt();
+		int nodeNumberOf = kio.getInt();
 		int edgeNumberOf = kio.getInt();
 		int source = kio.getInt();
 		int sink = kio.getInt();
+		Node[] nodes = new Node[nodeNumberOf];
+		for(int i = 0; i < nodeNumberOf; i++){
+			nodes[i] = null; //TODO
+		}
 		Edge[] edges = new Edge[edgeNumberOf];
 		for(int i = 0; i < edgeNumberOf; i++){
 			edges[i] = new Edge(kio.getInt(), kio.getInt(), kio.getInt());
