@@ -108,7 +108,7 @@ public class FordFulkerson {
 		while (true) 
 		{
 			//Start with source:
-			queue.offer(this.nodes[this.source]);
+			queue.push(this.nodes[this.source]);
 			for(short i = 0; i < nodes.length; i++)
 			{
 				//Reset path to find additional paths:
@@ -120,13 +120,13 @@ public class FordFulkerson {
 			//DFS from source to sink
 			while (queue.isEmpty() == false)
 			{
-				Node current = queue.poll();
+				Node current = queue.pop();
 				for(Edge e : current.neigbors.values())
 				{
-					if(e.capacity - e.flow > 0 && nodes[e.to].visited == false)
+					if(nodes[e.to].visited == false && e.capacity - e.flow > 0)
 					{
 						//if we have capacity left on this edge
-						queue.offer(nodes[e.to]);
+						queue.push(nodes[e.to]);
 						nodes[e.to].visited = true;
 						nodes[e.to].parent = e.from;
 						if(e.to == this.sink)
@@ -169,6 +169,7 @@ public class FordFulkerson {
 					Node from = nodes[nodes[to].parent]; 
 					Edge e = from.neigbors.get(to);
 					Edge rE = nodes[to].neigbors.get(from.index);
+					
 					
 					e.flow += pathCapacity;
 					rE.flow = -e.flow;
