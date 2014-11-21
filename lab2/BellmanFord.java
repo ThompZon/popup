@@ -5,6 +5,51 @@ import java.util.Comparator;
 
 /**
  * Authors Thomas Sjöholm and Alexander Gomez
+ * 
+== Sample Input ==
+5 4 3 0
+0 1 999
+1 2 -2
+2 1 1
+0 3 2
+1
+3
+4
+2 1 1 0
+0 1 -100
+1
+0 0 0 0
+== Sample Output ==
+-Infinity
+2
+Impossible
+
+-100
+
+== Failing Test ==
+6 7 1 0
+2 1 9001
+5 2 1
+0 5 1
+3 5 -5
+5 3 1
+0 4 -1
+4 1 -1
+1
+0 0 0 0
+========VS========
+6 7 1 0
+5 2 1
+0 5 1
+3 5 -5
+5 3 1
+0 4 -1
+4 1 -1
+2 1 9001
+1
+0 0 0 0
+=================
+OLIKA SVAR!
  */
 public class BellmanFord {
     private static final String FAILNOPATH = "Impossible";
