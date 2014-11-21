@@ -91,7 +91,7 @@ public class SuffixArray {
 		}
 
 		//Sort on the first 2 char values
-		SuffixCompare comparer = new SuffixCompare();
+		final SuffixCompare comparer = new SuffixCompare();
 		Arrays.sort(suffixes, comparer);
 
 		//Then sort according to the first 4 chars, 8, 16...
@@ -142,13 +142,13 @@ public class SuffixArray {
 		//Resulting in O(n log^2 n)
 		
 		//No need to keep the char values, lets just keep the int array;
-		int[] suffixArray = new int[length];
+		final int[] suffixArray = new int[length];
 	    for (int i = 0; i < length; i++){
 	        suffixArray[i] = suffixes[i].index;
 	    }
 		
 		// Return the suffix array
-		return  suffixArray;
+		return suffixArray;
 	}
 
 	// Driver program to test above functions
