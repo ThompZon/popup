@@ -6,25 +6,43 @@ import java.util.Comparator;
 /**
  * Suffix Array
  *  TODO comments
- * @author Thomas Sjöholm, Alexander Gomez
+ * @author Thomas Sjoholm, Alexander Gomez
  * @since 2014-11-21
  */
 public class SuffixArray {
-	private final String text;
+	//private final String text;
 	private final int length;
+	private final int[] suffixArr;
 
 	/**
 	 * TODO comments
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		new SuffixArray();
+		Kattio kio = new Kattio(System.in);
+		
+		while(kio.hasMoreTokens()){
+			SuffixArray sa = new SuffixArray(kio.getLine());
+			int quaries = kio.getInt();
+			for(int i = 0; i < quaries; i++){
+				kio.print(sa.getSuffix(kio.getInt()));
+				if(i < quaries - 1){
+					kio.print(' ');
+				}
+			}
+			kio.print('\n');
+			//TODO remove this!1
+			kio.flush();
+		}
+		
+		kio.flush();
+		kio.close();
 	}
 
 	private class Suffix
 	{
 		int index; // To store original index, the character it points to
-		int[] rank; // To store ranks and next rank pair, values used to sort
+		int[] charValues; // To store ranks and next rank pair, values used to sort
 		
 		/**
 		 * TODO comments
@@ -34,12 +52,7 @@ public class SuffixArray {
 		 */
 		public Suffix(int i, int r1, int r2){
 			this.index = i;
-			this.rank = new int[] {r1, r2};
-		}
-		
-		//TODO comments
-		public String getSubstring(){
-			return text.substring(index);
+			this.charValues = new int[] {r1, r2};
 		}
 	};
 
@@ -47,103 +60,107 @@ public class SuffixArray {
 	class SuffixCompare implements Comparator<Suffix>{
 		@Override
 		public int compare(Suffix a, Suffix b) {
-			if(a.rank[0] == b.rank[0]){
+			if(a.charValues[0] == b.charValues[0]){
 				//if first char is equal, then use the 2nd char
-				return Integer.compare(a.rank[1], b.rank[1]);
+				return Integer.compare(a.charValues[1], b.charValues[1]);
 			}else{
 				//if first char is not equal, compare them
-				return Integer.compare(a.rank[0], b.rank[0]);
+				return Integer.compare(a.charValues[0], b.charValues[0]);
 			}
 		}
 	}
 
-
-
+	//TODO
+	public int getSuffix(int index){
+		return suffixArr[index];
+	}
 
 	//TODO comments, builds suffix array
-	private Suffix[] buildSuffixArray()
+	private int[] buildSuffixArray(String text)
 	{
 		Suffix[] suffixes = new Suffix[length];
-
-		// Store suffixes and their indexes in an array of structures.
-		// The structure is needed to sort the suffixes alphabatically
-		// and maintain their old indexes while sorting
-		final int LOWEST_ASKII = 32;
+		// Stores indexes of suffixes and gets char value of current and next char
+		// Storing indexes will keep their "substring" even when sorted
 		for (int i = 0; i < length; i++)
 		{
-			suffixes[i] = new Suffix(
+			suffixes[i] = new Suffix (
 					i, 
-					text.charAt(i) - LOWEST_ASKII, 
-					((i+1) < length)? (text.charAt(i + 1) - LOWEST_ASKII): -1
+					text.charAt(i), 
+					((i+1) < length) ? (text.charAt(i + 1)): -1 //Out of bounds gives a -1, making shorter words appear higher up in the sort
 			);
 		}
 
-		// Sort the suffixes using the comparison function
-		// defined above.
-		SuffixCompare cmp = new SuffixCompare();
-		Arrays.sort(suffixes, cmp);
-		//sort(suffixes, suffixes+n, cmp);
+		//Sort on the first 2 char values
+		SuffixCompare comparer = new SuffixCompare();
+		Arrays.sort(suffixes, comparer);
 
-		// At his point, all suffixes are sorted according to first
-		// 2 characters.  Let us sort suffixes according to first 4
-		// characters, then first 8 and so on
-		int[] ind = new int[length];  // This array is needed to get the index in suffixes[]
-		// from original index.  This mapping is needed to get
-		// next suffix.
-		for (int k = 2; k < length; k = k*2)
+		//Then sort according to the first 4 chars, 8, 16...
+		int[] indexes = new int[length];  // This array is needed to get the index in suffixes[]
+		for (int k = 2; k < length; k = k*2) //O(log n) times, DO:
 		{
-			// Assigning rank and index values to first suffix
-			int rank = 0;
-			int prev_rank = suffixes[0].rank[0];
-			suffixes[0].rank[0] = rank;
-			ind[suffixes[0].index] = 0;
+			// Assigning char values and index values to first suffix
+			int currCharVal = 0;		//arbitrary value that will be incremented for non-same
+			int prevCharVal = suffixes[0].charValues[0];	//Prev val = current value;
+			suffixes[0].charValues[0] = currCharVal;
+			indexes[suffixes[0].index] = 0;			 		//Know where the first one is!
 
-			// Assigning rank to suffixes
+			// update char values[0]
 			for (int i = 1; i < length; i++)
 			{
-				// If first rank and next ranks are same as that of previous
-				// suffix in array, assign the same new rank to this suffix
-				if (suffixes[i].rank[0] == prev_rank &&
-						suffixes[i].rank[1] == suffixes[i-1].rank[1])
+				// If current has the same value as previous
+				if (suffixes[i].charValues[0] == prevCharVal && 
+					suffixes[i].charValues[1] == suffixes[i-1].charValues[1])
 				{
-					prev_rank = suffixes[i].rank[0];
-					suffixes[i].rank[0] = rank;
+					//Set current value to this one as well:
+					suffixes[i].charValues[0] = currCharVal;
+				} else {
+					//NOT EQUAL: Assign it to a higher value, some int higher than it was previously
+					suffixes[i].charValues[0] = ++currCharVal;
 				}
-				else // Otherwise increment rank and assign
-				{
-					prev_rank = suffixes[i].rank[0];
-					suffixes[i].rank[0] = ++rank;
-				}
-				ind[suffixes[i].index] = i;
+				prevCharVal = suffixes[i].charValues[0];	//Update prev value to current value:
+				indexes[suffixes[i].index] = i; 			//
 			}
 
-			// Assign next rank to every suffix
+			// Update char values [1]
 			for (int i = 0; i < length; i++)
 			{
 				int nextindex = suffixes[i].index + k;
-				suffixes[i].rank[1] = (nextindex < length)?
-						suffixes[ind[nextindex]].rank[0]: -1;
+				if(nextindex < length){
+					//Next char value is the value of (the index of the next character).
+					suffixes[i].charValues[1] = suffixes[indexes[nextindex]].charValues[0];
+				}else{
+					//Next charvalue is out of bounds!
+					//Soreted above non-out-of-bounds values!
+					suffixes[i].charValues[1] = -1;
+				}
 			}
 
-			// Sort the suffixes according to first k characters
-			Arrays.sort(suffixes, cmp);
+			// Sort the result of this round, another 2*k chars sorted!
+			// Takes O(n log n)
+			Arrays.sort(suffixes, comparer);
 		}
+		//Resulting in O(n log^2 n)
+		
+		//No need to keep the char values, lets just keep the int array;
+		int[] suffixArray = new int[length];
+	    for (int i = 0; i < length; i++){
+	        suffixArray[i] = suffixes[i].index;
+	    }
 		
 		// Return the suffix array
-		return  suffixes;
+		return  suffixArray;
 	}
 
 	// Driver program to test above functions
-	public SuffixArray()
+	public SuffixArray(String in)
 	{
-		text = "mississippi";
-		length = text.length();
+		//this.text = in;
+		this.length = in.length();
 		//String txt = "apaapa";
-		Suffix[] suffixArr = buildSuffixArray();
-		//cout << "Following is suffix array for " << txt << endl;
-		for(int i = 0; i < length; i++){
-			System.out.println(suffixArr[i].getSubstring());
-		}
+		this.suffixArr = buildSuffixArray(in);
+		//		for(int i = 0; i < length; i++){
+//			System.out.println(text.substring(suffixArr[i]));
+//		}
 		//System.out.println(numberOfCompares);
 		//printArr(suffixArr, n);
 	}
