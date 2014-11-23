@@ -1,31 +1,33 @@
 package popup.lab3;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.TreeSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class StringMatch1 {
 
-    List<Automata> automats;
-    int subStrings;
+    final static int ASCIISIZE = 127;
+    final static int ASCIISTART = 32;
+    Automata[] automats;
+    int currAut;
+    //int subStrings;
 
-    StringMatch1() {
-        automats = new LinkedList<>();
-        subStrings = 0;
+    StringMatch1(int numAutomats) {
+        currAut = 0;
+        automats = new Automata[numAutomats];
+        //subStrings = 0;
     }
 
     private String newMsg(String tmp) {
-        return msgConf(tmp);
-    }
-
-    private String msgConf(String tmp) {
         StringBuilder retList = new StringBuilder();
 
         for (int i = 0; i < tmp.length(); i++) {
             for (Automata a : automats) {
-                a.nextLetter(tmp.charAt(i),i);
+                a.nextLetter(tmp.charAt(i), i);
             }
         }
         for (Automata a : automats) {
@@ -36,13 +38,13 @@ public class StringMatch1 {
     }
 
     private void addWord(String tmp) {
-        automats.add(new Automata(tmp));
+        automats[currAut] = new Automata(tmp);
+        currAut++;
     }
 
     private class Automata {
 
-        // BitSet present;
-        ArrayList<HashMap<Character, Integer>> DFA;
+        int[][] DFA;
         private int state;
         private int finalState;
         private int length;
@@ -50,51 +52,41 @@ public class StringMatch1 {
 
         private void newDFA(String pattern) {
 
-            int tmpState = -1;
-            LinkedHashSet<Character> letters = new LinkedHashSet<>();
-
+            int tmpState = 0;
+            TreeSet<Character> ts = new TreeSet();
             char currChar;
-            HashMap<Character, Integer> tmp;
-            for (int i = 0; i < pattern.length(); i++) {
-                currChar = pattern.charAt(i);
-                letters.add(currChar);
-                tmp = new HashMap<Character, Integer>();
-                for (Character c : letters) {
 
+            DFA[0][pattern.charAt(0)] = 1;
+            ts.add(pattern.charAt(0));
+
+            for (int i = 1; i < pattern.length(); i++) {
+                currChar = pattern.charAt(i);
+                ts.add(currChar);
+
+                for (Character c : ts) {
+                    //constCount++;
                     if (c == pattern.charAt(i)) {
-                        tmp.put(c, i + 1);
+                        DFA[i][c] = (i + 1);
                     } else {
-                        Integer ns = DFA.get(tmpState).get(c);
-                        if (ns != null) {
-                            tmp.put(c, ns);
-                        }
+
+                        DFA[i][c] = DFA[tmpState][c];
 
                     }
 
                 }
-                DFA.add(tmp);
 
                 if (tmpState >= 0) {
-                    HashMap<Character, Integer> hs = DFA.get(tmpState);
-                    Integer ns = hs.get(currChar);
-                    if (ns == null) {
-                        tmpState = 0;
-                    } else {
-                        tmpState = ns;
-                    }
+                    tmpState = DFA[tmpState][currChar];
                 } else {
                     tmpState = 0;
                 }
             }
 
-            tmp = new HashMap<Character, Integer>();
-            for (Character c : letters) {
-                Integer ns = DFA.get(tmpState).get(c);
-                if (ns != null) {
-                    tmp.put(c, ns);
-                }
+            for (int j = ASCIISTART; j < ASCIISIZE; j++) {
+                //constCount++;
+                DFA[pattern.length()][j] = DFA[tmpState][j];
+
             }
-            DFA.add(tmp);
 
         }
 
@@ -102,10 +94,9 @@ public class StringMatch1 {
             finalState = pattern.length();
             state = 0;
             length = pattern.length();
-            DFA = new ArrayList<HashMap<Character, Integer>>();
+            DFA = new int[length + 1][ASCIISIZE];
             sb = new StringBuilder();
             newDFA(pattern);
-
         }
 
         public int getLength() {
@@ -113,8 +104,7 @@ public class StringMatch1 {
         }
 
         public boolean nextLetter(char c, int index) {
-            Integer tmpState = DFA.get(state).get(c);
-            state = (tmpState == null) ? 0 : tmpState;
+            state = DFA[state][c];
 
             if (state == finalState) {
                 sb.append(index - (length - 1));
@@ -125,39 +115,46 @@ public class StringMatch1 {
             return false;
         }
 
-        private void reset() {
-            state = 0;
-        }
-        
-        public String getAnswer(){
+        public String getAnswer() {
             return sb.toString();
         }
 
     }
 
-    public static void main(String[] args) {
-        Kattio kio = new Kattio(System.in, System.out);
+    public static void main(String[] args) throws FileNotFoundException {
+        //System.setIn(new FileInputStream("C:\\Users\\Alexander\\Documents\\NetBeansProjects\\PopupLab\\test\\popup\\lab3\\testInput"));
+        
+        Kattio kio = new Kattio(System.in);
+        OutputStream out = new BufferedOutputStream ( System.out );
         StringMatch1 mfos;
         String tmp;
         int lengthDictionary;
 
+        //while (kio.hasMoreTokens()) {
+        boolean start = false;
+
         while (kio.hasMoreTokens()) {
-            mfos = new StringMatch1();
-            lengthDictionary = kio.getInt();
-            for (int i = 0; i < lengthDictionary; i++) {
-                tmp = kio.getLine();
-
-                mfos.addWord(tmp);
+            try {
+                start = true;
+                //lengthDictionary = kio.getInt();
+                lengthDictionary = kio.getInt();
+                mfos = new StringMatch1(lengthDictionary);
+                for (int i = 0; i < lengthDictionary; i++) {
+                    mfos.addWord(kio.getLine());
+                }
+                
+                
+                
+                out.write(mfos.newMsg(kio.getLine()).getBytes());
+                
+                //kio.flush();
+            } catch (IOException ex) {
+                Logger.getLogger(StringMatch1.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-
-            tmp = kio.getLine();
-
-            kio.print(mfos.newMsg(tmp));
-
-            kio.flush();
         }
+
         kio.flush();
         kio.close();
+
     }
 }

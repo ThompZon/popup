@@ -1,15 +1,12 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Authors: Alexander Gomez and Thomas Sjöholm.
  */
 package popup.lab3;
 
 import java.util.BitSet;
 
 /**
- *
- * @author Alexander
+ * This class can be asked if an integer inside a range is prime.
  */
 public class ErathostenesSieve {
 
@@ -19,27 +16,53 @@ public class ErathostenesSieve {
 
     BitSet matrix;
 
+    /**
+     * Computes for all numbers 0 to size is they are prime.
+     *
+     * @param size
+     */
     public ErathostenesSieve(int size) {
         int mSize = (size + 1) / 2;
+        int cap = (int)Math.round( Math.sqrt(size));
         primes = 1;
         matrix = new BitSet(mSize);
         int tmp;
         for (int i = 1; i < mSize; i++) {
             if (!matrix.get(i)) {
                 primes++;
+
                 tmp = i << 1;
                 tmp++;
-                for (int j = i+tmp; j <= mSize; j += tmp) {
-                    matrix.set(j);
+
+                //Starts from ith prime^2
+                if (tmp <= cap) {
+                    for (int j = (i + (tmp * i)); j <= mSize; j += tmp) {
+                // doesnt work, must be overflow
+                        //for (int j = (i +tmp); j <= mSize; j += tmp) {
+                        matrix.set(j);
+
+                    }
                 }
+
             }
         }
     }
-    
-    public int numPrimes(){
+
+    /**
+     * Return number of primes this table contains
+     *
+     * @return number of primes
+     */
+    public int numPrimes() {
         return primes;
     }
 
+    /**
+     * Returns 1 if aInt is prime else 0, aInt should not be larger than size
+     *
+     * @param aInt integer to query
+     * @return 1 if aInt is prime, else 0
+     */
     public char query(int aInt) {
         char ret = TRUE;
         if (aInt < 2 || (aInt > 2 && 0 == (aInt & 1))) {
@@ -53,17 +76,13 @@ public class ErathostenesSieve {
         return ret;
     }
 
+    /**
+     * First reads an integer to set the size of the ErathostenesSieve, then
+     * queries it with integers
+     *
+     * @param args
+     */
     public static void main(String[] args) {
-//        int number = 1;
-//
-//        int[] numbers = new int[100];
-//
-//        for (int i = 1; i < 100; i++) {
-//
-//            number += 2;
-//            numbers[i] = number;
-//            System.err.println((number) + " i: " + ((number) >> 1));
-//        }
 
         Kattio kio = new Kattio(System.in, System.out);
         ErathostenesSieve es;

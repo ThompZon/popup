@@ -90,7 +90,7 @@ public class Kattio extends PrintWriter {
             try {
                 while (st == null || !st.hasMoreTokens()) {
                     line = r.readLine();
-                    if (line == null) {
+                    if (line == null || line.isEmpty()) {
                         return null;
                     }
                     st = new StringTokenizer(line);
