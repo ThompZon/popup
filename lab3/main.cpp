@@ -107,7 +107,7 @@ int main(int argc, char** argv) {
     StringMatch mfos;
     std::string first;
     while (std::getline(std::cin, first) ){
-        std::cout << std::cin::;
+        //std::cout << std::cin::;
         if(first.empty()){
             return 0;
         }
