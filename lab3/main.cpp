@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
             mfos.newMsg(text);
         }
         //char c = std::cin.get();
-        std::cin.
+        //std::cin.
         char c = std::cin.peek();
         mfos.reset();
         
