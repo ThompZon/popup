@@ -50,6 +50,13 @@ public class PointInt implements Point{
 		return Math.sqrt((x - other.getX().intValue()) * (x - other.getX().intValue()) 
 						+(y - other.getY().intValue()) * (y - other.getY().intValue()));
 	}
+	
+	@Override
+	public double distanceSquared(Point other) {
+		//distance between points squared
+		return (this.x - other.getX().intValue()) * (this.x - other.getX().intValue()) 
+			  +(this.y - other.getY().intValue()) * (this.y - other.getY().intValue());
+	}
 
 	@Override
 	public double angle(Point other) {

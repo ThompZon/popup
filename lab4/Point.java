@@ -10,6 +10,7 @@ public interface Point {
 	public Number dot(Point other);
 	public Number cross(Point other);
 	public double distanse(Point other);
+	public double distanceSquared(Point other); //Slightly faster than the above
 	public double angle(Point other);
 	
 	public Number getX();
